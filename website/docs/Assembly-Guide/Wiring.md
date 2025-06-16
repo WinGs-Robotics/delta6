@@ -17,7 +17,7 @@ For detailed communication protocol, please refer to the **Firmware** chapter.
 ## 1. Arduino Nano Wiring
 
 <p align="center">
-  <img src="/img/Assembly-Guide/nano1.png" alt="Arduino Nano Wiring" width="100%" />
+  <img src="/delta6/img/Assembly-Guide/nano1.png" alt="Arduino Nano Wiring" width="100%" />
 </p>
 
 **Steps:**
@@ -27,23 +27,24 @@ For detailed communication protocol, please refer to the **Firmware** chapter.
 3️⃣ For the **5V**, **GND**, and **D2** pins, assemble them into a **3-pin female connector** (**b**, **c**).  
 4️⃣ For the encoder SPI connections, match the pins as follows:
 
-| Encoder | Chip Select (CS) | Data Input (MOSI) |
-| :---: | :---: | :---: |
-| Encoder 1 | D3 | D19 |
-| Encoder 2 | D4 | D18 |
-| Encoder 3 | D5 | D17 |
-| Encoder 4 | D6 | D16 |
-| Encoder 5 | D7 | D15 |
-| Encoder 6 | D8 | D14 |
+|  Encoder  | Chip Select (CS) | Data Input (MOSI) |
+| :-------: | :--------------: | :---------------: |
+| Encoder 1 |        D3        |        D19        |
+| Encoder 2 |        D4        |        D18        |
+| Encoder 3 |        D5        |        D17        |
+| Encoder 4 |        D6        |        D16        |
+| Encoder 5 |        D7        |        D15        |
+| Encoder 6 |        D8        |        D14        |
 
 Each encoder uses a unique pair of pins: one **CS** pin for selection, and one **MOSI** pin for data input.
 
-**Wiring Rule:**  
-- **D3–D19** pair → connect to Encoder 1  
-- **D4–D18** pair → connect to Encoder 2  
-- **D5–D17** pair → connect to Encoder 3  
-- **D6–D16** pair → connect to Encoder 4  
-- **D7–D15** pair → connect to Encoder 5  
+**Wiring Rule:**
+
+- **D3–D19** pair → connect to Encoder 1
+- **D4–D18** pair → connect to Encoder 2
+- **D5–D17** pair → connect to Encoder 3
+- **D6–D16** pair → connect to Encoder 4
+- **D7–D15** pair → connect to Encoder 5
 - **D8–D14** pair → connect to Encoder 6
 
 > 📌 **Reminder:** Be careful to keep the CS and MOSI wires paired correctly, otherwise the encoders will not communicate properly.
@@ -53,7 +54,7 @@ Each encoder uses a unique pair of pins: one **CS** pin for selection, and one *
 ## 2. Power Distribution Board Assembly
 
 <p align="center">
-  <img src="/img/Assembly-Guide/nano2.png" alt="Power Distribution Board" width="100%" />
+  <img src="/delta6/img/Assembly-Guide/nano2.png" alt="Power Distribution Board" width="100%" />
 </p>
 
 **Steps:**
@@ -62,6 +63,7 @@ Each encoder uses a unique pair of pins: one **CS** pin for selection, and one *
 2️⃣ It is recommended to insert the headers into a **breadboard** to maintain alignment during assembly.  
 3️⃣ Once properly arranged, glue them together firmly using **strong adhesive**.  
 4️⃣ Electrically connect the following rows individually:
+
 - **SCK** row
 - **GND** row
 - **5V** row

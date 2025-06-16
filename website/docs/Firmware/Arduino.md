@@ -2,9 +2,7 @@
 sidebar_position: 1
 ---
 
-
 # Microcontroller Setup 🖥️
-
 
 This section explains how to set up the Arduino Nano Every and prepare the Python environment for the Delta6 system.
 
@@ -43,6 +41,7 @@ python3.12 -m venv venv
 Activate the virtual environment:
 
 - **On Ubuntu:**
+
   ```bash
   source venv/bin/activate
   ```
@@ -84,13 +83,13 @@ python example.py --port /dev/ttyACM0
 If successful, a window should pop up similar to:
 
 <p align="center">
-  <img src="/img/online_eval.gif" alt="Online Evaluation" width="80%" />
+  <img src="/delta6/img/online_eval.gif" alt="Online Evaluation" width="80%" />
 </p>
 
 The coordinate system is defined as follows:
 
 <p align="center">
-  <img src="/img/overall.png" alt="Coordinate System Definition" width="50%" />
+  <img src="/delta6/img/overall.png" alt="Coordinate System Definition" width="50%" />
 </p>
 
 ---

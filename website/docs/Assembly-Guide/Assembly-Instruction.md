@@ -11,12 +11,13 @@ This section provides a detailed, step-by-step guide for assembling the Delta6 m
 ## 1. Microcontroller Module Assembly
 
 <p align="center">
-  <img src="/img/Assembly-Guide/nano2.png" alt="Microcontroller Assembly" width="100%" />
+  <img src="/delta6/img/Assembly-Guide/nano2.png" alt="Microcontroller Assembly" width="100%" />
 </p>
 
 **Steps:**
 
 1️⃣ Use **4× M2 standoffs** (**o**) and **4× M2×20mm screws** to mount the following parts together in a stack:
+
 - Nano Holder 1 (**12**)
 - Nano Holder 2 (**13**)
 - Power Distributor Holder (**11**)
@@ -32,12 +33,13 @@ This section provides a detailed, step-by-step guide for assembling the Delta6 m
 ## 2. Limb and Spring Assembly
 
 <p align="center">
-  <img src="/img/Assembly-Guide/xyz.png" alt="Limb and Spring Assembly" width="100%" />
+  <img src="/delta6/img/Assembly-Guide/xyz.png" alt="Limb and Spring Assembly" width="100%" />
 </p>
 
 **Steps:**
 
 1️⃣ Press-fit the bearings (**f**, **g**) into:
+
 - Bearing Housing (XYZ) (**3**)
 - Bearing Housing (Roll/Pitch) (**2**)
 - Bearing Housing (Yaw) (**10**)
@@ -57,12 +59,13 @@ This section provides a detailed, step-by-step guide for assembling the Delta6 m
 ## 3. Universal Joint Module Assembly
 
 <p align="center">
-  <img src="/img/Assembly-Guide/rpy.png" alt="Universal Joint Assembly" width="100%" />
+  <img src="/delta6/img/Assembly-Guide/rpy.png" alt="Universal Joint Assembly" width="100%" />
 </p>
 
 **Steps:**
 
 1️⃣ Install a spring (**d**) onto each of the following parts:
+
 - Shaft (Yaw) (**9**)
 - Universal Joint (Upper) (**5**)
 
@@ -85,7 +88,7 @@ Ensure the spring orientation strictly matches the figure.
 ## 4. Connecting Upper and Lower Assemblies
 
 <p align="center">
-  <img src="/img/Assembly-Guide/ball_joint.png" alt="Linking Assembly" width="100%" />
+  <img src="/delta6/img/Assembly-Guide/ball_joint.png" alt="Linking Assembly" width="100%" />
 </p>
 
 **Steps:**
@@ -101,15 +104,15 @@ Ensure the spring orientation strictly matches the figure.
 4️⃣ Finally, connect the rods to the **Universal Joint Module** using **M2×20mm screws** and nuts.
 
 > 📌 **Note:**  
-Ensure that the **relative orientation** between the Universal Joint and the Arm Mount (**1**) matches the figure exactly.  
-Incorrect installation will lead to misaligned force sensing axes.
+> Ensure that the **relative orientation** between the Universal Joint and the Arm Mount (**1**) matches the figure exactly.  
+> Incorrect installation will lead to misaligned force sensing axes.
 
 ---
 
 ## 5. Encoder Installation
 
 <p align="center">
-  <img src="/img/Assembly-Guide/encoder.png" alt="Encoder Installation" width="100%" />
+  <img src="/delta6/img/Assembly-Guide/encoder.png" alt="Encoder Installation" width="100%" />
 </p>
 
 **Steps:**
@@ -118,39 +121,42 @@ Incorrect installation will lead to misaligned force sensing axes.
 Extend the wires of two encoders by approximately **7.5 cm** using **Colored 28 AWG Cables (m)**.
 
 2️⃣ Group and connect the wires as follows:
+
 - **Group 1 (3-pin connector):** 5V → GND → SCK
 - **Group 2 (2-pin connector):** MOSI → CS
 
 > 🎨 **Wiring Order:**  
-The rightmost wire (red mark) is **5V**, followed by **GND**, then **SCK**, **MOSI**, and **CS** from right to left.
+> The rightmost wire (red mark) is **5V**, followed by **GND**, then **SCK**, **MOSI**, and **CS** from right to left.
 
 3️⃣ Install the six encoders to the positions shown in the diagram.  
 Use:
+
 - **M3×6mm screws** for general mounting
 - **M4×6mm screws** for specific positions as indicated
 - Encoders with **extended cables** should be installed at positions 4 and 5.
 
 <p align="center">
-  <img src="/img/overall.png" alt="Overall Assembly" width="50%" />
+  <img src="/delta6/img/overall.png" alt="Overall Assembly" width="50%" />
 </p>
 
 4️⃣ Final wiring:
+
 - Insert 3-pin headers into the **Power Distribution Board**.
 - Connect 2-pin headers to the **6×2 connector**.
 
 **Final Encoder Pin Mapping:**
 
-| Encoder | Chip Select (CS) | Data Input (MOSI) |
-| :---: | :---: | :---: |
-| Encoder 1 | D3 | D19 |
-| Encoder 2 | D4 | D18 |
-| Encoder 3 | D5 | D17 |
-| Encoder 4 | D6 | D16 |
-| Encoder 5 | D7 | D15 |
-| Encoder 6 | D8 | D14 |
+|  Encoder  | Chip Select (CS) | Data Input (MOSI) |
+| :-------: | :--------------: | :---------------: |
+| Encoder 1 |        D3        |        D19        |
+| Encoder 2 |        D4        |        D18        |
+| Encoder 3 |        D5        |        D17        |
+| Encoder 4 |        D6        |        D16        |
+| Encoder 5 |        D7        |        D15        |
+| Encoder 6 |        D8        |        D14        |
 
 > 📌 **Reminder:**  
-Ensure that the wiring order is strictly followed to avoid communication errors.
+> Ensure that the wiring order is strictly followed to avoid communication errors.
 
 ---
 

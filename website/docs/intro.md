@@ -5,7 +5,7 @@ sidebar_position: 1
 # Delta6: Introduction
 
 <div align="center">
-  <img src="img/online_eval.gif" alt="Delta6 in Action" style={{borderRadius: "10px", boxShadow: "0 4px 8px rgba(0,0,0,0.2)"}} />
+  <img src="/delta6/img/online_eval.gif" alt="Delta6 in Action" style={{borderRadius: "10px", boxShadow: "0 4px 8px rgba(0,0,0,0.2)"}} />
 </div>
 
 ---
@@ -25,7 +25,7 @@ Its inherent compliance makes Delta6 ideal for interactive tasks such as human�
 ## 📐 Specifications
 
 <div align="center">
-  <img src="/img/specs.png" alt="Delta6 Specifications" width="50%" style={{borderRadius: "10px"}} />
+  <img src="/delta6/img/specs.png" alt="Delta6 Specifications" width="50%" style={{borderRadius: "10px"}} />
 </div>
 
 - **Compact & Lightweight:** ~170 × 190 × 235 mm, < 310 grams.
