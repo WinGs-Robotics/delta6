@@ -5,7 +5,7 @@ sidebar_position: 1
 # Delta6: Introduction
 
 <div align="center">
-  <img src={require("/img/online_eval.gif")} alt="Delta6 in Action" style={{borderRadius: "10px", boxShadow: "0 4px 8px rgba(0,0,0,0.2)"}} />
+  <img src="img/online_eval.gif" alt="Delta6 in Action" style={{borderRadius: "10px", boxShadow: "0 4px 8px rgba(0,0,0,0.2)"}} />
 </div>
 
 ---
