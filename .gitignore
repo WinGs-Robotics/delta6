@@ -1,0 +1,60 @@
+# --- Python Related ---
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- PlatformIO Related ---
+
+.pio/
+
+# --- Docusaurus (Node.js) Related ---
+
+# Node.js dependencies
+website/node_modules/
+
+# Docusaurus build output
+website/build/
+
+# Local environment files
+website/.env
+website/.env.local
+website/.env.development.local
+website/.env.test.local
+website/.env.production.local
+
+# --- System files ---
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- IDE config files ---
+
+.vscode/
+.idea/
+
+# --- Logs ---
+
+*.log
