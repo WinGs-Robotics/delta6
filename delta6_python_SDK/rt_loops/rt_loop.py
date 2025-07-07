@@ -2,6 +2,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import threading
 import time
 
+
 class RTLoop:
     def __init__(self, freq=50, print_frequency=False):
         """
@@ -30,13 +31,16 @@ class RTLoop:
         self._last_update_time = self._start_time
 
         # Add loop task
-        self.scheduler.add_job(self.loop, 'interval', seconds=1/self.freq, id='loop_job')
+        self.scheduler.add_job(self.loop, 'interval',
+                               seconds=1/self.freq, id='loop_job')
 
         # Add frequency updating task
-        self.scheduler.add_job(self.update_frequency, 'interval', seconds=1, id='update_freq_job')
+        self.scheduler.add_job(self.update_frequency,
+                               'interval', seconds=1, id='update_freq_job')
 
         # Add time tracking task (updates every 100 ms for better resolution)
-        self.scheduler.add_job(self.update_time_from_start, 'interval', seconds=0.1, id='time_job')
+        self.scheduler.add_job(self.update_time_from_start,
+                               'interval', seconds=0.1, id='time_job')
 
         # Start the scheduler
         self.scheduler.start()
@@ -75,7 +79,8 @@ class RTLoop:
         if self._start_time is not None:
             elapsed_time_sec = time.perf_counter() - self._start_time
             with self._lock:
-                self.time_from_start = int(elapsed_time_sec * 1000)  # Convert to milliseconds
+                # Convert to milliseconds
+                self.time_from_start = int(elapsed_time_sec * 1000)
 
     def get_hz(self):
         """
@@ -114,6 +119,7 @@ class RTLoop:
                 if self.print_frequency:
                     current_hz = self.get_hz()
                     elapsed_time = self.get_time_from_start()
-                    print(f"Accessed from main thread - Current Hz: {current_hz:.2f}, Elapsed Time: {elapsed_time} ms")
+                    print(
+                        f"Accessed from main thread - Current Hz: {current_hz:.2f}, Elapsed Time: {elapsed_time} ms")
         except (KeyboardInterrupt, SystemExit):
             self.shutdown()
