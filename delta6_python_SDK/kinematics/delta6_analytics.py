@@ -8,11 +8,13 @@ from scipy.optimize import fsolve
 import numpy as np
 import scipy.spatial.transform as tfm
 
+from utils.math_tools import compute_force_at_B, represent_wrench_to_B
+
 # Class representing a Delta Robot
 
 
 class DeltaRobot:
-    def __init__(self, short_arm_length=40.0, parallel_arm_length=120.0, base_radius=72.0, end_effector_radius=21.24):
+    def __init__(self, short_arm_length=40.0, parallel_arm_length=120.0, base_radius=72.0, end_effector_radius=21.24, theta_offset=math.pi / 6, spring_coef=0.639236):
         """
         Initialize the Delta Robot with given dimensions.
 
@@ -30,48 +32,64 @@ class DeltaRobot:
 
         self.z_offset_upper = 33  # mm
         self.z_offset_lower = 30  # mm
-        self.z_offset = self.z_offset_upper + self.z_offset_lower # mm
+        self.z_offset = self.z_offset_upper + self.z_offset_lower  # mm
 
-        self.theta_offset = math.pi / 6  # radian
+        self.theta_offset = theta_offset  # radian
 
-        self.theta = [0.0] * 6  # theta1 ~ theta6
-        self.torque = [0.0] * 6  # torque1 ~ torque6
+        self.theta1 = 0
+        self.theta2 = 0
+        self.theta3 = 0
+        self.theta4 = 0
+        self.theta5 = 0
+        self.theta6 = 0
 
-        
-        self.spring_coef = 0.723540
+        self.torque1 = 0
+        self.torque2 = 0
+        self.torque3 = 0
+        self.torque4 = 0
+        self.torque5 = 0
+        self.torque6 = 0
+
+        self.spring_coef = spring_coef
 
     def update(self, theta1, theta2, theta3, theta4, theta5, theta6):
         self.update_angles(theta1, theta2, theta3, theta4, theta5, theta6)
         self.update_torques(theta1, theta2, theta3, theta4, theta5, theta6)
 
-    def update_angles(self, *thetas):
-        """
-        Update the joint angles.
+    def update_angles(self, theta1, theta2, theta3, theta4, theta5, theta6):
+        self.theta1 = theta1
+        self.theta2 = theta2
+        self.theta3 = theta3
+        self.theta4 = theta4
+        self.theta5 = theta5
+        self.theta6 = theta6
 
-        Parameters:
-        thetas (float): A sequence of 6 angle values for theta1 to theta6.
-        """
-        if len(thetas) != 6:
-            raise ValueError("Exactly 6 angles must be provided.")
-        self.theta = list(thetas)
-
-    def update_torques(self, *thetas):
-        """
-        Update the torques based on input angles and spring coefficient.
-
-        Parameters:
-        thetas (float): A sequence of 6 angle values for theta1 to theta6.
-        """
-        if len(thetas) != 6:
-            raise ValueError("Exactly 6 angles must be provided.")
-        self.torque = [theta * self.spring_coef for theta in thetas]
+    def update_torques(self, theta1, theta2, theta3, theta4, theta5, theta6):
+        self.torque1 = theta1 * self.spring_coef
+        self.torque2 = theta2 * self.spring_coef
+        self.torque3 = theta3 * self.spring_coef
+        self.torque4 = theta4 * self.spring_coef
+        self.torque5 = theta5 * self.spring_coef
+        self.torque6 = theta6 * self.spring_coef
 
     def get_end_force(self):
-        return self.calculate_end_force(*self.torque)
+        return self.calculate_end_force(self.torque1, self.torque2, self.torque3, self.torque4, self.torque5, self.torque6)
+
+    def calculate_end_force(self, torque1, torque2, torque3, torque4, torque5, torque6):
+        Fx, Fy, Fz = self.calculate_force_xyz(
+            torque1, torque2, torque3)
+        Mx, My, Mz = torque4, torque5, torque6
+
+        pose_trans = self.get_FK_result()
+        rotate_trans = [0, 0, 0, pose_trans[3], pose_trans[4], pose_trans[5]]
+        transfered_wrench = represent_wrench_to_B(
+            [Fx, Fy, Fz, Mx, My, Mz], rotate_trans)
+        # transfered_wrench = compute_force_at_B([Fx, Fy, Fz, Mx, My, Mz], rotate_trans)
+        # transfered_wrench = [Fx, Fy, Fz, 0, 0, 0]
+        return transfered_wrench[0], transfered_wrench[1], transfered_wrench[2], transfered_wrench[3], transfered_wrench[4], transfered_wrench[5]
 
     def get_FK_result(self):
-        return self.forward_kinematics(*self.theta)
-
+        return self.forward_kinematics(self.theta1, self.theta2, self.theta3, self.theta4, self.theta5, self.theta6)
 
     def forward_kinematics(self, theta1, theta2, theta3, theta4, theta5, theta6):
         """
@@ -140,10 +158,10 @@ class DeltaRobot:
         z = -(z0 - self.z_offset) / 1000.0
 
         # Convert extrinsic rotation angles to intrinsic roll, pitch, yaw
-        extrinsics = [theta4, theta5, theta6]
-        r = tfm.Rotation.from_euler('xyz', extrinsics, degrees=False)
+        ZXY = [theta6, theta4, theta5]
+        r = tfm.Rotation.from_euler('ZXY', ZXY, degrees=False)
         roll, pitch, yaw = map(float, r.as_euler('XYZ', degrees=False))
-
+        # roll, pitch, yaw = theta4, theta5, theta6
         return x, y, z, roll, pitch, yaw
 
     def _calculate_angle_yz(self, x0, y0, z0):
@@ -191,8 +209,8 @@ class DeltaRobot:
         cos120 = math.cos(2.0 * math.pi / 3.0)
         sin120 = math.sin(2.0 * math.pi / 3.0)
 
-        x0 = -y * 1000.0
-        y0 = x * 1000.0
+        x0 = y * 1000.0
+        y0 = -x * 1000.0
         z0 = -z * 1000 + self.z_offset
 
         # Calculate the three short angles
@@ -214,26 +232,20 @@ class DeltaRobot:
         theta2 -= self.theta_offset
         theta3 -= self.theta_offset
 
-        # Convert intrinsic roll, pitch, yaw to extrinsic XYZ rotation angles
-        intrinsics = [roll, pitch, yaw]
-        r = tfm.Rotation.from_euler('XYZ', intrinsics, degrees=False)
-        theta4, theta5, theta6 = map(float, r.as_euler('xyz', degrees=False))
-
+        # Convert intrinsic roll, pitch, yaw to ZXY rotation angles
+        XYZ = [roll, pitch, yaw]
+        r = tfm.Rotation.from_euler('XYZ', XYZ, degrees=False)
+        theta6, theta4, theta5 = map(float, r.as_euler('ZXY', degrees=False))
+        # theta4, theta5, theta6 = roll, pitch, yaw
         return theta1, theta2, theta3, theta4, theta5, theta6
 
-    def calculate_end_force(self, torque1, torque2, torque3, torque4, torque5, torque6):
-        Fx, Fy, Fz = self.calculate_force_xyz(
-            torque1, torque2, torque3)
-        Mx, My, Mz = torque4, torque5, torque6
-        return Fx, Fy, Fz, Mx, My, Mz
-
     def calculate_force_xyz(self, torque1, torque2, torque3):
-        
+
         theta1 = torque1/self.spring_coef + self.theta_offset
         theta2 = torque2/self.spring_coef + self.theta_offset
         theta3 = torque3/self.spring_coef + self.theta_offset
 
-        a = self.f/1000 #mm to m
+        a = self.f/1000  # mm to m
         b = self.e/1000
         la = self.rf/1000
         lb = self.re/1000
@@ -251,7 +263,8 @@ class DeltaRobot:
         sin_theta3 = math.sin(theta3)
         cos_theta3 = math.cos(theta3)
         # a. find px py pz
-        px, py, pz, _, _, _ = self.forward_kinematics(torque1/self.spring_coef, torque2/self.spring_coef, torque3/self.spring_coef,0,0,0)
+        px, py, pz, _, _, _ = self.forward_kinematics(
+            torque1/self.spring_coef, torque2/self.spring_coef, torque3/self.spring_coef, 0, 0, 0)
 
         pz = pz - self.z_offset/1000
         # b.calculate unit vector of AiPi for each branch refer to main
@@ -283,7 +296,7 @@ class DeltaRobot:
         # d.convert unit vector of AiPi from each branch to branch coordinates
         A_1P_1_unit_O1 = A_1P_1_unit
         A_2P_2_unit_O2 = mat_neg_120_3d @ A_2P_2_unit
-        A_3P_3_unit_O3 =  mat_neg_240_3d @ A_3P_3_unit
+        A_3P_3_unit_O3 = mat_neg_240_3d @ A_3P_3_unit
 
         # e. calculate force magnitudes Fa1 Fa2 Fa3
 
@@ -298,10 +311,10 @@ class DeltaRobot:
         Fa1 = Fa1_mag * A_1P_1_unit
         Fa2 = Fa2_mag * A_2P_2_unit
         Fa3 = Fa3_mag * A_3P_3_unit
-        
+
         F = Fa1 + Fa2 + Fa3
-        Fx = -F[0] 
-        Fy = -F[1] 
+        Fx = -F[0]
+        Fy = -F[1]
         Fz = -F[2]
 
         return Fx, Fy, Fz
@@ -311,20 +324,20 @@ class DeltaRobot:
         def residuals(torques):
             t1, t2, t3 = torques
             Fx, Fy, Fz = self.calculate_force_xyz(t1, t2, t3)
-            
+
             return [
                 Fx - Fx_target,
                 Fy - Fy_target,
                 Fz - Fz_target
             ]
-        
+
         initial_guess = [0.0, 0.0, 0.0]
-        
+
         solution = fsolve(residuals, initial_guess, xtol=1e-5)
-        return solution  
-    
-    def calculate_euler_pose(self,Fx,Fy,Fz,Mx,My,Mz):
-        torque1, torque2, torque3 = self.calculate_torque_123(Fx,Fy,Fz)
+        return solution
+
+    def calculate_euler_pose(self, Fx, Fy, Fz, Mx, My, Mz):
+        torque1, torque2, torque3 = self.calculate_torque_123(Fx, Fy, Fz)
 
         theta1 = torque1/self.spring_coef
         theta2 = torque2/self.spring_coef
@@ -333,7 +346,96 @@ class DeltaRobot:
         theta5 = My/self.spring_coef
         theta6 = Mz/self.spring_coef
 
-        return self.forward_kinematics(theta1,theta2,theta3,theta4,theta5,theta6)
+        return self.forward_kinematics(theta1, theta2, theta3, theta4, theta5, theta6)
 
 
-        
+# ---------------------------------------------------------------
+# Main – quick round-trip test for FK ⇄ IK
+# ---------------------------------------------------------------
+if __name__ == "__main__":
+    import numpy as np
+
+    def pretty_print_pose(label, pose):
+        """Pose: (x, y, z, roll, pitch, yaw)"""
+        if pose is None:
+            print(f"{label:<14}:  None / IK failed")
+            return
+        x, y, z, r, p, yaw = pose
+        print(f"{label:<14}:  "
+              f"x={x: .4f}  y={y: .4f}  z={z: .4f}  "
+              f"r={r: .4f}  p={p: .4f}  y={yaw: .4f}")
+
+    def pretty_print_wrench(label, wrench):
+        """Wrench: (Fx, Fy, Fz, Tx, Ty, Tz)"""
+        Fx, Fy, Fz, Tx, Ty, Tz = wrench
+        print(f"{label:<14}:  "
+              f"Fx={Fx: .4f}  Fy={Fy: .4f}  Fz={Fz: .4f}  "
+              f"Tx={Tx: .4f}  Ty={Ty: .4f}  Tz={Tz: .4f}")
+
+    # 1) Instantiate the robot
+    robot = DeltaRobot()
+
+    # 2) Choose a target pose (units: metres, radians)
+    x_target, y_target, z_target = 0.005, -0.016, 0.155   # 5 mm, –6 mm, –150 mm
+    roll_target = 0.03                                     # rad
+    pitch_target = -0.01                                    # rad
+    yaw_target = 0.04                                     # rad
+
+    print("Target end-effector pose:")
+    print(f"  xyz  = ({x_target:.4f}, {y_target:.4f}, {z_target:.4f})  [m]")
+    print(
+        f"  rpy  = ({roll_target:.4f}, {pitch_target:.4f}, {yaw_target:.4f})  [rad]")
+
+    # 3) Inverse kinematics
+    joint_angles = robot.inverse_kinematics(
+        x_target, y_target, z_target, roll_target, pitch_target, yaw_target
+    )
+    if joint_angles is None:
+        print("\n❌  Inverse kinematics failed - pose out of workspace.")
+        raise SystemExit(1)
+
+    # 4) Update robot state and run forward kinematics
+    robot.update(*joint_angles)
+    fk_pose = robot.get_FK_result()          # (x, y, z, roll, pitch, yaw)
+    end_force = robot.get_end_force()
+
+    # 5) Compare results
+    fk = np.array(fk_pose)
+    tgt = np.array([x_target, y_target, z_target,
+                   roll_target, pitch_target, yaw_target])
+    diff = fk - tgt
+
+    print("\nJoint angles (rad):")
+    print("  " + ", ".join(f"{a:.6f}" for a in joint_angles))
+
+    print("\nPose returned by forward kinematics:")
+    print(
+        f"  xyz  = ({fk_pose[0]:.4f}, {fk_pose[1]:.4f}, {fk_pose[2]:.4f})  [m]")
+    print(
+        f"  rpy  = ({fk_pose[3]:.4f}, {fk_pose[4]:.4f}, {fk_pose[5]:.4f})  [rad]")
+
+    print("\nResidual error  (FK – target):")
+    print(f"  Δxyz = {diff[:3]}")
+    print(f"  Δrpy = {diff[3:]}")
+
+    pretty_print_wrench("\nEnd-effector force", end_force)
+
+    # ---------------------------------------------------------------
+    trans1 = [0, 0, 0.15, 0.3, 0,   0]
+    trans2 = [0, 0, 0.15, 0.3, 0.2,   0]
+
+    print("\n===== Pose 1 =================================================")
+    enc1 = robot.inverse_kinematics(*trans1)
+    print("Inverse kinematics  :", enc1)
+    if enc1:
+        robot.update(*enc1)
+        pretty_print_pose("Forward kinematics", robot.get_FK_result())
+        pretty_print_wrench("End-effector force", robot.get_end_force())
+
+    print("\n===== Pose 2 =================================================")
+    enc2 = robot.inverse_kinematics(*trans2)
+    print("Inverse kinematics  :", enc2)
+    if enc2:
+        robot.update(*enc2)
+        pretty_print_pose("Forward kinematics", robot.get_FK_result())
+        pretty_print_wrench("End-effector force", robot.get_end_force())
