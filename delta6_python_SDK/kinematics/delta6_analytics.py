@@ -7,8 +7,7 @@ import math
 from scipy.optimize import fsolve
 import numpy as np
 import scipy.spatial.transform as tfm
-
-from ..utils.math_tools import compute_force_at_B, represent_wrench_to_B
+from scipy.spatial.transform import Rotation as R
 
 # Class representing a Delta Robot
 
@@ -347,6 +346,53 @@ class DeltaRobot:
         theta6 = Mz/self.spring_coef
 
         return self.forward_kinematics(theta1, theta2, theta3, theta4, theta5, theta6)
+
+
+def represent_wrench_to_B(wrench_a, transform_6d):
+
+    T_AB = position_to_trans_matrix(transform_6d)
+    R_AB = T_AB[:3, :3]
+    t_AB = T_AB[:3, 3]
+
+    f_a = np.array(wrench_a[:3])
+    tau_a = np.array(wrench_a[3:])
+
+    cross_term = np.cross(t_AB, tau_a)
+
+    f_b = R_AB.T @ f_a - R_AB.T @ cross_term
+    tau_b = R_AB.T @ tau_a
+
+    wrench_b = np.concatenate([f_b, tau_b])
+    return wrench_b
+
+
+def position_to_trans_matrix(transform):
+    """
+    Converts position [x, y, z] and Euler angles [roll, pitch, yaw] (in radians)
+    into a 4x4 homogeneous transformation matrix T_AB.
+
+    Here, 'transform' describes the pose of frame B relative to frame A.
+    i.e., T_AB transforms coordinates from A to B.
+
+    :param transform: [x, y, z, roll, pitch, yaw]
+    :return: a 4x4 numpy array, T_AB
+    """
+    if len(transform) != 6:
+        raise ValueError(
+            "Transform must have 6 elements: [x, y, z, roll, pitch, yaw].")
+
+    x, y, z, roll, pitch, yaw = transform
+
+    # Rotation from Euler angles (in radians, 'XYZ' convention)
+    rot = R.from_euler('XYZ', [roll, pitch, yaw], degrees=False)
+    R_mat = rot.as_matrix()  # 3x3
+
+    # Build the 4x4 homogeneous transform
+    T_AB = np.eye(4)
+    T_AB[0:3, 0:3] = R_mat
+    T_AB[0:3, 3] = [x, y, z]
+
+    return T_AB
 
 
 # ---------------------------------------------------------------
