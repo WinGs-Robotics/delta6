@@ -8,7 +8,7 @@ from scipy.optimize import fsolve
 import numpy as np
 import scipy.spatial.transform as tfm
 
-from utils.math_tools import compute_force_at_B, represent_wrench_to_B
+from ..utils.math_tools import compute_force_at_B, represent_wrench_to_B
 
 # Class representing a Delta Robot
 
