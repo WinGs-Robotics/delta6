@@ -1,4 +1,4 @@
-from scservo_sdk.sts3023 import STS3032
+from ..scservo_sdk.sts3023 import STS3032
 from rt_loops.rt_loop import RTLoop
 import time
 
@@ -32,7 +32,9 @@ class Delta6GripperController(RTLoop):
         super().setup()
 
     def loop(self):
-        self.current_motor_angle, _, _ = self.motor.read_angle(self.motor_id)
+        read_motor_angle, _, _ = self.motor.read_angle(self.motor_id)
+        if read_motor_angle != None:
+            self.current_motor_angle = read_motor_angle
         # load, direction, _, _ = self.motor.read_load(self.motor_id)
         # self.current_motor_load = direction * load
 
@@ -134,9 +136,13 @@ class Delta6GripperController(RTLoop):
         self.set_angle(angle_deg)
 
     def _wait_until_stall(self, direction: int, step_deg=2.0, stall_duration=1.0):
-        last_angle, _, _ = self.motor.read_angle(self.motor_id)
-        target_angle = last_angle
-        unchanged_time = 0.0
+        while True:
+            read_last_angle, _, _ = self.motor.read_angle(self.motor_id)
+            if read_last_angle != None:
+                target_angle = read_last_angle
+                last_angle = read_last_angle
+                unchanged_time = 0.0
+                break
 
         while True:
             target_angle += direction * step_deg
@@ -144,15 +150,20 @@ class Delta6GripperController(RTLoop):
             self.motor.write_angle(self.motor_id, target_angle)
             time.sleep(1.0 / self.freq)
 
-            current_angle, _, _ = self.motor.read_angle(self.motor_id)
-            if abs(current_angle - last_angle) < 0.5:
-                unchanged_time += 1.0 / self.freq
+            read_current_angle, _, _ = self.motor.read_angle(self.motor_id)
+            if read_current_angle == None:
+                continue
             else:
-                unchanged_time = 0.0
-            last_angle = current_angle
+                current_angle = read_current_angle
 
-            if unchanged_time >= stall_duration:
-                return current_angle
+                if abs(current_angle - last_angle) < 0.5:
+                    unchanged_time += 1.0 / self.freq
+                else:
+                    unchanged_time = 0.0
+                last_angle = current_angle
+
+                if unchanged_time >= stall_duration:
+                    return current_angle
 
     def calibration(self):
         print("== Delta6Gripper Calibration ==")

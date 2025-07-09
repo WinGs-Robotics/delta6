@@ -1,16 +1,18 @@
-from scservo_sdk.sts3023 import STS3032
+from ..scservo_sdk.sts3023 import STS3032
 from rt_loops.rt_loop import RTLoop
 import time
 
 
 class Delta6Gripper(RTLoop):
-    def __init__(self, motor_id: int, port: str, freq: float = 50, mode: str = "pos"):
+    def __init__(self, motor_id: int, port: str, max_load=400.0, freq: float = 50, mode: str = "pos"):
 
         super().__init__(freq=freq)
         self.motor_id = motor_id
         self.motor = STS3032(port, 1000000)
 
         self.target_motor_angle = 0.0
+        self.last_target_motor_angle = 0.0
+
         self.current_motor_angle = 0.0
         self.current_motor_vel = 0.0
 
@@ -21,6 +23,7 @@ class Delta6Gripper(RTLoop):
         self.angle_range = (0.0, 0.0)
 
         self.mode = mode
+        self.max_load = max_load
 
     def setup(self):
         time.sleep(0.5)
@@ -34,14 +37,28 @@ class Delta6Gripper(RTLoop):
         super().setup()
 
     def loop(self):
-        self.current_motor_angle, _, _ = self.motor.read_angle(self.motor_id)
-        # self.current_motor_vel, _, _ = self.motor.read_velocity(self.motor_id)
-
-        load, direction, _, _ = self.motor.read_load(self.motor_id)
-        self.current_motor_load = direction * load
+        read_motor_angle, _, _ = self.motor.read_angle(self.motor_id)
+        read_load, read_direction, _, _ = self.motor.read_load(self.motor_id)
+        if read_motor_angle != None:
+            self.current_motor_angle = read_motor_angle
+        if read_load != None and read_direction != None:
+            self.current_motor_load = read_direction * read_load
 
         if self.mode == "pos":
-            self.motor.write_angle(self.motor_id, self.target_motor_angle)
+            delta_angle = self.target_motor_angle - self.current_motor_angle
+
+            overload_and_worsen = (
+                abs(self.current_motor_load) > abs(self.max_load) and
+                self.current_motor_load * delta_angle < 0
+            )
+
+            if overload_and_worsen:
+                self.motor.write_angle(
+                    self.motor_id, self.last_target_motor_angle)
+            else:
+                self.motor.write_angle(self.motor_id, self.target_motor_angle)
+                self.last_target_motor_angle = self.target_motor_angle
+
         elif self.mode == "torque":
             self.motor.write_torque(self.motor_id, self.target_motor_torque)
         else:
@@ -108,9 +125,13 @@ class Delta6Gripper(RTLoop):
         self.set_angle(angle_deg)
 
     def _wait_until_stall(self, direction: int, step_deg=2.0, stall_duration=1.0):
-        last_angle, _, _ = self.motor.read_angle(self.motor_id)
-        target_angle = last_angle
-        unchanged_time = 0.0
+        while True:
+            read_last_angle, _, _ = self.motor.read_angle(self.motor_id)
+            if read_last_angle != None:
+                target_angle = read_last_angle
+                last_angle = read_last_angle
+                unchanged_time = 0.0
+                break
 
         while True:
             target_angle += direction * step_deg
@@ -118,15 +139,20 @@ class Delta6Gripper(RTLoop):
             self.motor.write_angle(self.motor_id, target_angle)
             time.sleep(1.0 / self.freq)
 
-            current_angle, _, _ = self.motor.read_angle(self.motor_id)
-            if abs(current_angle - last_angle) < 0.5:
-                unchanged_time += 1.0 / self.freq
+            read_current_angle, _, _ = self.motor.read_angle(self.motor_id)
+            if read_current_angle == None:
+                continue
             else:
-                unchanged_time = 0.0
-            last_angle = current_angle
+                current_angle = read_current_angle
 
-            if unchanged_time >= stall_duration:
-                return current_angle
+                if abs(current_angle - last_angle) < 0.5:
+                    unchanged_time += 1.0 / self.freq
+                else:
+                    unchanged_time = 0.0
+                last_angle = current_angle
+
+                if unchanged_time >= stall_duration:
+                    return current_angle
 
     def calibration(self):
         print("== Delta6Gripper Calibration ==")

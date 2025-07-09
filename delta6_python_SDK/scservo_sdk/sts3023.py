@@ -1,4 +1,5 @@
-from scservo_sdk import *
+from ..scservo_sdk import *
+
 
 class STS3032:
     def __init__(self, device_name='/dev/ttyUSB0', baudrate=1000000):
@@ -25,11 +26,14 @@ class STS3032:
 
     def read_register(self, motor_id, address, length):
         if length == 1:
-            data, comm_result, error = self.packet_handler.read1ByteTxRx(motor_id, address)
+            data, comm_result, error = self.packet_handler.read1ByteTxRx(
+                motor_id, address)
         elif length == 2:
-            data, comm_result, error = self.packet_handler.read2ByteTxRx(motor_id, address)
+            data, comm_result, error = self.packet_handler.read2ByteTxRx(
+                motor_id, address)
         elif length == 4:
-            data, comm_result, error = self.packet_handler.read4ByteTxRx(motor_id, address)
+            data, comm_result, error = self.packet_handler.read4ByteTxRx(
+                motor_id, address)
         else:
             raise ValueError("Unsupported data length. Use 1, 2, or 4.")
         return data, comm_result, error
@@ -50,32 +54,39 @@ class STS3032:
 
     def read_angle(self, motor_id):
         address = 56  # PRESENT_POSITION_L
-        raw_pos, comm_result, error = self.packet_handler.read2ByteTxRx(motor_id, address)
+        raw_pos, comm_result, error = self.packet_handler.read2ByteTxRx(
+            motor_id, address)
+        if comm_result != COMM_SUCCESS or raw_pos is None:
+            return None, comm_result, error
+
         angle_deg = (raw_pos * 360.0 / 4095.0) - 180.0
         return angle_deg, comm_result, error
 
     def read_velocity(self, motor_id):
         address = 58  # PRESENT_POSITION_L
-        raw_vel, comm_result, error = self.packet_handler.read2ByteTxRx(motor_id, address)
+        raw_vel, comm_result, error = self.packet_handler.read2ByteTxRx(
+            motor_id, address)
+
         def map_vel(value):
-            if value >2885:
+            if value > 2885:
                 return 2885-value
             else:
                 return value
-        
+
         angular_vel = (raw_vel * 360.0 / 4095.0)
         maped_angular_vel = map_vel(angular_vel)
         return maped_angular_vel, comm_result, error
 
     def write_angle(self, motor_id, angle_deg):
         if self.control_mode != 0:
-            print(f"[Info] Motor {motor_id} not in position mode, switching to mode=0 now.")
+            print(
+                f"[Info] Motor {motor_id} not in position mode, switching to mode=0 now.")
             self.set_control_mode(motor_id, 0)
 
         if not -180.0 <= angle_deg <= 180.0:
             raise ValueError("Angle must be between -180 and +180 degrees")
 
-        #print(f"[Debug] (Pos Mode) Writing angle {angle_deg:.2f}° to motor {motor_id}")
+        # print(f"[Debug] (Pos Mode) Writing angle {angle_deg:.2f}° to motor {motor_id}")
         raw_pos = int((angle_deg + 180.0) * 4095.0 / 360.0)
         GOAL_POSITION_ADDR = 42  # GOAL_POSITION_L
         return self.packet_handler.write2ByteTxRx(motor_id, GOAL_POSITION_ADDR, raw_pos)
@@ -85,10 +96,15 @@ class STS3032:
             raise ValueError("Torque value must be between 0 and 1000")
         MAX_TORQUE_ADDR = 48
         return self.write_register(motor_id, MAX_TORQUE_ADDR, 2, torque_val)
-    
+
     def read_load(self, motor_id):
         LOAD_ADDR = 60
-        raw_load, comm_result, error = self.read_register(motor_id, LOAD_ADDR, 2)
+        raw_load, comm_result, error = self.read_register(
+            motor_id, LOAD_ADDR, 2)
+
+        if comm_result != COMM_SUCCESS or raw_load is None:
+            return None, None, comm_result, error
+
         load_value = raw_load & 0x3FF
         direction = -1 if (raw_load & 0x400) else 1
         return load_value, direction, comm_result, error
@@ -103,7 +119,8 @@ class STS3032:
               2 => Torque Mode
         """
         if mode not in [0, 2]:
-            raise ValueError("Unsupported control mode. Use 0 (Position) or 2 (Torque).")
+            raise ValueError(
+                "Unsupported control mode. Use 0 (Position) or 2 (Torque).")
 
         CONTROL_MODE_ADDR = 33
         print(f"[Debug] Setting motor {motor_id} to control mode {mode}")
@@ -112,7 +129,8 @@ class STS3032:
 
     def write_torque(self, motor_id, torque_val):
         if self.control_mode != 2:
-            print(f"[Info] Motor {motor_id} not in torque mode, switching to mode=2 now.")
+            print(
+                f"[Info] Motor {motor_id} not in torque mode, switching to mode=2 now.")
             self.set_control_mode(motor_id, 2)
 
         def map_torque(value):
@@ -121,19 +139,18 @@ class STS3032:
                 return int(-value + 1024)
             else:
                 return value
-            
+
         def clamp(value, min_value, max_value):
             return max(min_value, min(value, max_value))
-            
+
         clamped_torque = clamp(torque_val, -1000, 1000)
         clamped_torque = int(clamped_torque)
         mapped_torque = map_torque(clamped_torque)
         torque_data = self.int_to_byte_array(mapped_torque)
 
-        #print(f"[Debug] (Torque Mode) Writing torque={mapped_torque} to motor {motor_id}")
+        # print(f"[Debug] (Torque Mode) Writing torque={mapped_torque} to motor {motor_id}")
         TORQUE_ADDR = 44
         return self.packet_handler.writeTxRx(motor_id, TORQUE_ADDR, 2, torque_data)
-    
 
     def int_to_byte_array(self, value, length=2):
         return [(value >> (8 * i)) & 0xFF for i in range(length)]
