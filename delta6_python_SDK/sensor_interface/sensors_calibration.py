@@ -1,5 +1,6 @@
 import time
-from sensor_interface.interface import SensorInterface
+from .interface import SensorInterface
+
 
 def sensor_calibration(nano_port):
 
@@ -7,10 +8,12 @@ def sensor_calibration(nano_port):
     try:
         # Prompt user to move the device to a natural position
         print("Current position data:")
-        data_radians = sensor_interface.read_radians()  # Initial read to display current position
+        # Initial read to display current position
+        data_radians = sensor_interface.read_radians()
         print(data_radians)
 
-        input("Please move the device to a natural position, then press Enter to calibrate...")
+        input(
+            "Please move the device to a natural position, then press Enter to calibrate...")
 
         # Perform calibration
         sensor_interface.calibrate_sensors()
