@@ -37,12 +37,14 @@ class Delta6Gripper(RTLoop):
         super().setup()
 
     def loop(self):
-        read_motor_angle, _, _ = self.motor.read_angle(self.motor_id)
-        read_load, read_direction, _, _ = self.motor.read_load(self.motor_id)
+        read_motor_angle, read_load, _, _ = self.motor.read_pos_and_load(
+            self.motor_id)
+
         if read_motor_angle != None:
             self.current_motor_angle = read_motor_angle
-        if read_load != None and read_direction != None:
-            self.current_motor_load = read_direction * read_load
+        if read_load != None and read_motor_angle != None:
+            self.current_motor_angle = read_motor_angle
+            self.current_motor_load = read_load
 
         if self.mode == "pos":
             delta_angle = self.target_motor_angle - self.current_motor_angle

@@ -152,5 +152,24 @@ class STS3032:
         TORQUE_ADDR = 44
         return self.packet_handler.writeTxRx(motor_id, TORQUE_ADDR, 2, torque_data)
 
+    def read_pos_and_load(self, motor_id):
+        START_ADDR = 56      # Position_L
+        LEN = 6       # 2B Pos + 2B Vel + 2B Load
+
+        raw, comm_result, error = self.packet_handler.readTxRx(
+            motor_id, START_ADDR, LEN)
+
+        if comm_result != COMM_SUCCESS or raw is None:
+            return None, None, comm_result, error
+
+        pos_raw = int.from_bytes(raw[0:2], "little")
+        load_raw = int.from_bytes(raw[4:6], "little")
+
+        angle_deg = (pos_raw * 360.0 / 4095.0) - 180.0
+        load_val = load_raw & 0x3FF
+        direction = -1 if (load_raw & 0x400) else 1
+
+        return angle_deg, direction * load_val, comm_result, error
+
     def int_to_byte_array(self, value, length=2):
         return [(value >> (8 * i)) & 0xFF for i in range(length)]
