@@ -3,7 +3,8 @@
 import time
 import threading
 import logging
-from sensor_interface.interface import SensorInterface
+from ..sensor_interface.interface import SensorInterface
+
 
 class ReadEncoderLoop:
     def __init__(self, nano_port, encoder_dir):
@@ -42,7 +43,8 @@ class ReadEncoderLoop:
             # Update encoder_result with thread safety
             if encoder_data:
                 with self.encoder_lock:
-                    self.encoder_result = [a * b for a, b in zip(encoder_data, self.encoder_dir)]
+                    self.encoder_result = [
+                        a * b for a, b in zip(encoder_data, self.encoder_dir)]
 
             else:
                 logging.warning("Failed to read Encoder data")
@@ -66,7 +68,8 @@ class ReadEncoderLoop:
         :param frequency: Loop frequency in Hz.
         """
         interval = 1.0 / frequency  # Seconds
-        logging.info(f"ReadForceLoop thread started at {frequency} Hz (every {interval * 1000:.2f} ms)")
+        logging.info(
+            f"ReadForceLoop thread started at {frequency} Hz (every {interval * 1000:.2f} ms)")
         while not self._stop_event.is_set():
             # Execute the loop task
             self.loop()
@@ -81,11 +84,13 @@ class ReadEncoderLoop:
         :param frequency: Loop frequency in Hz. Default is 100 Hz.
         """
         if self._thread is None:
-            self._thread = threading.Thread(target=self._spin_loop, args=(frequency,), daemon=True)
+            self._thread = threading.Thread(
+                target=self._spin_loop, args=(frequency,), daemon=True)
             self._thread.start()
             logging.info("ReadEncoderLoop spinning thread has been started.")
         else:
-            logging.warning("ReadEncoderLoop spinning thread is already running.")
+            logging.warning(
+                "ReadEncoderLoop spinning thread is already running.")
 
     def stop_spin(self):
         """
@@ -109,7 +114,8 @@ class ReadEncoderLoop:
             self.sensor_interface.close()
             logging.info("SensorInterface has been closed.")
         else:
-            logging.warning("SensorInterface does not have a 'close' method. Resources may not be released properly.")
+            logging.warning(
+                "SensorInterface does not have a 'close' method. Resources may not be released properly.")
 
 
 if __name__ == "__main__":
@@ -120,13 +126,15 @@ if __name__ == "__main__":
     import logging
 
     # Configure logging at the beginning of your script
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
 
     NANO_PORT_NAME = "/dev/ttyACM0"
-    ENCODER_DIR = [1,1,1,-1,-1,-1]
-    
+    ENCODER_DIR = [1, 1, 1, -1, -1, -1]
+
     # Initialize the ReadEncoderLoop
-    read_encoder_loop = ReadEncoderLoop(nano_port=NANO_PORT_NAME, encoder_dir=ENCODER_DIR)
+    read_encoder_loop = ReadEncoderLoop(
+        nano_port=NANO_PORT_NAME, encoder_dir=ENCODER_DIR)
 
     # Start the spinning loop
     read_encoder_loop.loop_spin(frequency=100)

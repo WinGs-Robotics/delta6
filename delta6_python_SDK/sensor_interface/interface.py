@@ -7,13 +7,15 @@ START_BYTE = 0xAA
 CMD_CALIBRATION = 0x01
 CMD_READ = 0x02
 
+
 class SensorInterface:
-    def __init__(self, port='/dev/ttyACM0', baudrate=115200, timeout=10):
+    def __init__(self, port='/dev/ttyACM0', baudrate=115200, timeout=1):
         """
         Initialize the serial connection.
         """
         try:
-            self.ser = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
+            self.ser = serial.Serial(
+                port=port, baudrate=baudrate, timeout=timeout)
             print(f"Serial port {port} opened successfully.")
             time.sleep(0.1)
 
@@ -43,7 +45,7 @@ class SensorInterface:
 
         try:
             self.ser.write(packet)
-            #print(f"Command {cmd:#04x} sent.")
+            # print(f"Command {cmd:#04x} sent.")
         except serial.SerialException as e:
             print(f"Error sending command: {e}")
 
@@ -93,7 +95,8 @@ class SensorInterface:
             received_checksum = data[idx]
 
             # Verify data integrity with checksum
-            checksum_data = [byte for byte in data[:idx]]  # Exclude checksum byte
+            # Exclude checksum byte
+            checksum_data = [byte for byte in data[:idx]]
             calculated_checksum = self.calculate_checksum(checksum_data)
             if calculated_checksum != received_checksum:
                 print("Checksum mismatch.")
@@ -137,7 +140,7 @@ class SensorInterface:
         Each 14-bit sensor value ranges from 0 to 16383, representing 0 to 2π radians.
         """
         self.send_command(CMD_READ)
-        #time.sleep(0.05)  # Wait for Arduino to prepare data
+        # time.sleep(0.05)  # Wait for Arduino to prepare data
         result = self.read_response()
         radians_values = []
         if result:
@@ -148,12 +151,13 @@ class SensorInterface:
                     print(f"Sensor {i+1} error.")
                     return []
                 else:
-                    angle_in_radians = round((sensor_values[i] / 16383.0) * (2 * math.pi), 5)
+                    angle_in_radians = round(
+                        (sensor_values[i] / 16383.0) * (2 * math.pi), 5)
                     radians_values.append(angle_in_radians)
         else:
             print("Failed to read sensor data.")
             return []
-        
+
         return radians_values
 
     def close(self):
