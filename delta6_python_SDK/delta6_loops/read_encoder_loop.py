@@ -3,7 +3,7 @@
 import time
 import threading
 import logging
-from ..sensor_interface.interface import SensorInterface
+from delta6_sensor_interface.interface import SensorInterface
 
 
 class ReadEncoderLoop:

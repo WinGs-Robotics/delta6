@@ -1,10 +1,10 @@
 import time
 import argparse
-from kinematics.delta6_analytics import DeltaRobot
-from rt_loops.rt_loop import RTLoop
-from rt_loops.read_encoder_loop import ReadEncoderLoop
-from sensor_interface.sensors_calibration import sensor_calibration
-from utils.force_visualizer import ForceVisualizer
+from delta6_kinematics.delta6_analytics import DeltaRobot
+from delta6_loops.rt_loop import RTLoop
+from delta6_loops.read_encoder_loop import ReadEncoderLoop
+from delta6_sensor_interface.sensors_calibration import sensor_calibration
+from delta6_utils.force_visualizer import ForceVisualizer
 
 
 class MainLoop(RTLoop):

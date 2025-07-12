@@ -1,6 +1,7 @@
 import serial
 import time
-from rt_loops.rt_loop import RTLoop
+from delta6_loops.rt_loop import RTLoop
+
 
 class Delta6_grinder(RTLoop):
     """
@@ -37,7 +38,7 @@ class Delta6_grinder(RTLoop):
 
         print("[Info] Waiting for Arduino to send 'Initialized'...")
         self._wait_for_arduino_init(msg="Initialized", timeout=10.0)
-        
+
         print("[Info] Delta6_grinder setup complete.")
 
         # Call parent setup method if needed
@@ -91,7 +92,8 @@ class Delta6_grinder(RTLoop):
         while True:
             # Check for timeout
             if (time.time() - start_time) > timeout:
-                raise TimeoutError(f"Waiting for '{msg}' timed out after {timeout} seconds.")
+                raise TimeoutError(
+                    f"Waiting for '{msg}' timed out after {timeout} seconds.")
 
             # Check incoming serial data
             if self.ser.in_waiting > 0:
