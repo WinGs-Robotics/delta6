@@ -1,4 +1,4 @@
-from ..scservo_sdk import *
+from scservo_sdk import *
 
 
 class STS3032:
