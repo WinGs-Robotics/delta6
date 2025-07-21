@@ -13,7 +13,7 @@ from scipy.spatial.transform import Rotation as R
 
 
 class DeltaRobot:
-    def __init__(self, short_arm_length=40.0, parallel_arm_length=120.0, base_radius=72.0, end_effector_radius=21.24, theta_offset=math.pi / 6, spring_coef=0.639236):
+    def __init__(self, short_arm_length=40.0, parallel_arm_length=120.0, base_radius=72.0, end_effector_radius=21.24, theta_offset=math.pi / 6, spring_coef=0.639236, version="original"):
         """
         Initialize the Delta Robot with given dimensions.
 
@@ -34,6 +34,8 @@ class DeltaRobot:
         self.z_offset = self.z_offset_upper + self.z_offset_lower  # mm
 
         self.theta_offset = theta_offset  # radian
+
+        self.version = version
 
         self.theta1 = 0
         self.theta2 = 0
@@ -67,9 +69,13 @@ class DeltaRobot:
         self.torque1 = theta1 * self.spring_coef
         self.torque2 = theta2 * self.spring_coef
         self.torque3 = theta3 * self.spring_coef
-        self.torque4 = theta4 * self.spring_coef
-        self.torque5 = theta5 * self.spring_coef
         self.torque6 = theta6 * self.spring_coef
+        if self.version == "double-springs-roll-pitch":
+            self.torque4 = 2 * theta4 * self.spring_coef
+            self.torque5 = 2 * theta5 * self.spring_coef
+        else:
+            self.torque4 = theta4 * self.spring_coef
+            self.torque5 = theta5 * self.spring_coef
 
     def get_end_force(self):
         return self.calculate_end_force(self.torque1, self.torque2, self.torque3, self.torque4, self.torque5, self.torque6)
