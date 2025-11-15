@@ -324,34 +324,49 @@ class DeltaRobot:
 
         return Fx, Fy, Fz
 
-    def calculate_torque_123(self, Fx_target, Fy_target, Fz_target):
+    def calculate_torques(self, Fx_target, Fy_target, Fz_target, Mx_target, My_target, Mz_target):
 
         def residuals(torques):
-            t1, t2, t3 = torques
-            Fx, Fy, Fz = self.calculate_force_xyz(t1, t2, t3)
+            t1, t2, t3, t4, t5, t6 = torques
+            Fx, Fy, Fz, Mx, My, Mz = self.calculate_end_force(
+                t1, t2, t3, t4, t5, t6)
 
             return [
                 Fx - Fx_target,
                 Fy - Fy_target,
-                Fz - Fz_target
+                Fz - Fz_target,
+                Mx - Mx_target,
+                My - My_target,
+                Mz - Mz_target
             ]
 
-        initial_guess = [0.0, 0.0, 0.0]
+        initial_guess = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         solution = fsolve(residuals, initial_guess, xtol=1e-5)
         return solution
 
     def calculate_euler_pose(self, Fx, Fy, Fz, Mx, My, Mz):
-        torque1, torque2, torque3 = self.calculate_torque_123(Fx, Fy, Fz)
+        torque1, torque2, torque3, torque4, torque5, torque6 = self.calculate_torques(
+            Fx, Fy, Fz, Mx, My, Mz)
 
         theta1 = torque1/self.spring_coef
         theta2 = torque2/self.spring_coef
         theta3 = torque3/self.spring_coef
-        theta4 = Mx/self.spring_coef
-        theta5 = My/self.spring_coef
-        theta6 = Mz/self.spring_coef
 
-        return self.forward_kinematics(theta1, theta2, theta3, theta4, theta5, theta6)
+        if self.version == "double-springs-roll-pitch":
+            theta4 = torque4/(2*self.spring_coef)
+            theta5 = torque5/(2*self.spring_coef)
+            theta6 = torque6/(2*self.spring_coef)
+        else:
+            theta4 = torque4/self.spring_coef
+            theta5 = torque5/self.spring_coef
+            theta6 = torque6/self.spring_coef
+
+        thetas = np.array([theta1, theta2, theta3, theta4,
+                          theta5, theta6], dtype=float)
+        thetas = np.round(thetas, 5)
+
+        return self.forward_kinematics(*thetas)
 
 
 def represent_wrench_to_B(wrench_a, transform_6d):
