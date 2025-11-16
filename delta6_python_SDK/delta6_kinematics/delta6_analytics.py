@@ -342,7 +342,7 @@ class DeltaRobot:
 
         initial_guess = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-        solution = fsolve(residuals, initial_guess, xtol=1e-5)
+        solution = fsolve(residuals, initial_guess, xtol=1e-7)
         return solution
 
     def calculate_euler_pose(self, Fx, Fy, Fz, Mx, My, Mz):
