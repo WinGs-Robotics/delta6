@@ -37,7 +37,7 @@ void setup() {
     sensors[i].attach(csPins[i], pinSCK, mosiPins[i]);
   }
 
-  Serial.println("6x ercks Rotary Position Sensors Initialized");
+  //Serial.println("6x ercks Rotary Position Sensors Initialized");
 }
 
 void loop() {

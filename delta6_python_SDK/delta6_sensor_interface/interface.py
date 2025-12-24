@@ -9,7 +9,7 @@ CMD_READ = 0x02
 
 
 class SensorInterface:
-    def __init__(self, port='/dev/ttyACM0', baudrate=115200, timeout=1):
+    def __init__(self, port='/dev/ttyACM0', baudrate=115200, timeout=0.005):
         """
         Initialize the serial connection.
         """
@@ -17,7 +17,7 @@ class SensorInterface:
             self.ser = serial.Serial(
                 port=port, baudrate=baudrate, timeout=timeout)
             print(f"Serial port {port} opened successfully.")
-            time.sleep(0.1)
+            time.sleep(2.0)
 
         except serial.SerialException as e:
             print(f"Error opening serial port {port}: {e}")
